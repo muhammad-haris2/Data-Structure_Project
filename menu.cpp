@@ -348,7 +348,7 @@ void displayMenu(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, strin
     sf::Text queueButton("Add Me to Queue", font, 20);
     queueButton.setPosition(350, 300);
 
-    sf::Text levelButton("Level", font, 20);
+    sf::Text levelButton("Levels", font, 20);
     levelButton.setPosition(350, 350);
 
     sf::Text friendsButton("Friends", font, 20);
