@@ -7,6 +7,7 @@
 using namespace std;
 using namespace sf;
 
+
 // Enemy implementation
 Enemy::Enemy() {
     x = y = 300; // Start near center
