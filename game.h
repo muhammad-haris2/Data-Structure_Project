@@ -3,37 +3,41 @@
 
 #include <SFML/Graphics.hpp>
 #include "player.h"
+#include "inventory.h"
 
-const int M = 30;  // Rows (600 / 20)
-const int N = 40;  // Columns (800 / 20)
-const int ts = 20; // Tile size
-
-struct Enemy {
-    int x, y, dx, dy;
-    bool frozen;
-    sf::Clock freezeClock;
-    float moveTimer;
-
-    Enemy();
-    void move(int grid[M][N], float deltaTime);
-    void activateFreeze();
-};
+const int M = 20;
+const int N = 40;
+const int ts = 18;
 
 struct PlayerState {
     int x, y, dx, dy;
     int score;
     int powerUps;
     int capturedTiles;
-    bool alive;
     bool constructing;
     bool frozen;
-    sf::Clock freezeClock;
+    bool alive;
     sf::Color pathColor;
-    PlayerState() : x(0), y(0), dx(0), dy(0), score(0), powerUps(0), capturedTiles(0), alive(true), constructing(false), frozen(false), pathColor() {}
+    sf::Clock freezeClock;
+    bool showBackgroundMenu; // Added to toggle background selection UI
+    PlayerState() : x(0), y(0), dx(0), dy(0), score(0), powerUps(0), capturedTiles(0),
+        constructing(false), frozen(false), alive(true),
+        pathColor(sf::Color::White), showBackgroundMenu(false) {
+    }
+};
+
+struct Enemy {
+    int x, y, dx, dy;
+    bool frozen;
+    float moveTimer;
+    sf::Clock freezeClock;
+    Enemy();
+    void move(int grid[M][N], float deltaTime);
+    void activateFreeze();
 };
 
 void drop(int y, int x, int grid[M][N]);
 void playXonixGame(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, const std::string& currentUser);
-void playMultiplayerXonixGame(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, const std::string& player1, const std::string& player2);
+void playMultiplayerXonixGame(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, const std::string& player1User, const std::string& player2User);
 
 #endif

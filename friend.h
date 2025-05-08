@@ -3,7 +3,8 @@
 
 #include <SFML/Graphics.hpp>
 #include "player.h"
+#include "inventory.h"
 
-bool displayFriendPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, const std::string& currentUser);
+bool displayFriendPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, const std::string& currentUser, Inventory& inventory);
 
 #endif

@@ -36,6 +36,9 @@
     <ClCompile Include="matchmaking.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="inventory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="player.h">
@@ -55,6 +58,9 @@
     </ClInclude>
     <ClInclude Include="matchmaking.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inventory.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

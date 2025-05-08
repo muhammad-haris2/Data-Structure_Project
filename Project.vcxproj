@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="friend.cpp" />
+    <ClCompile Include="inventory.cpp" />
     <ClCompile Include="login.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="game.cpp" />
@@ -30,6 +31,7 @@
   <ItemGroup>
     <ClInclude Include="friend.h" />
     <ClInclude Include="game.h" />
+    <ClInclude Include="inventory.h" />
     <ClInclude Include="login.h" />
     <ClInclude Include="matchmaking.h" />
     <ClInclude Include="menu.h" />
@@ -121,12 +123,12 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\Software\SFML-2.6.2-windows-vc17-64-bit\SFML-2.6.2\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\SFML-2.6.2\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>D:\Software\SFML-2.6.2-windows-vc17-64-bit\SFML-2.6.2\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\SFML-2.6.2\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>sfml-graphics-d.lib;sfml-window-d.lib;sfml-audio-d.lib;sfml-network-d.lib;sfml-system-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -138,14 +140,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\Software\SFML-2.6.2-windows-vc17-64-bit\SFML-2.6.2\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\SFML-2.6.2\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>D:\Software\SFML-2.6.2-windows-vc17-64-bit\SFML-2.6.2\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\SFML-2.6.2\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>sfml-graphics.lib;sfml-window.lib;sfml-audio.lib;sfml-network.lib;sfml-system.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>

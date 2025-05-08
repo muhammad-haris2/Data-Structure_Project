@@ -2,7 +2,7 @@
 
 using namespace std;
 
-bool displayFriendPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, const string& currentUser) {
+bool displayFriendPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, const string& currentUser, Inventory& inventory) {
     window.setTitle("Friend System");
 
     sf::Text title("Friend Management", font, 30);
@@ -60,7 +60,8 @@ bool displayFriendPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& font,
                 numPendingRequests++;
                 y += 20;
             }
-            pending.erase(0, pos + 1);
+            pending = pending.substr(pos + 1);
+
         }
         };
 
@@ -145,6 +146,7 @@ bool displayFriendPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& font,
         friendsList.setString(pl.getFriendsList(currentUser));
 
         window.clear();
+        inventory.drawBackground(window); // Draw background
         window.draw(title);
         window.draw(sendRequestText);
         window.draw(usernameField);

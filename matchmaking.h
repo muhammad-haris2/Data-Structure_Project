@@ -30,6 +30,7 @@ public:
     ~MatchmakingQueue();
     bool enqueue(int playerID, int score, const std::string& username);
     bool dequeue(std::string& player1, std::string& player2);
+
     bool hasEnoughPlayers() const { return size >= 2; }
     int getSize() const { return size; }
     std::string* getQueueContents(int& outSize) const;

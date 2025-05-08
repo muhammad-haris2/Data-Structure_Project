@@ -7,7 +7,6 @@
 using namespace std;
 using namespace sf;
 
-
 // Enemy implementation
 Enemy::Enemy() {
     x = y = 300; // Start near center
@@ -59,8 +58,6 @@ void Enemy::activateFreeze() {
     freezeClock.restart();
 }
 
-
-
 // Drop implementation (flood-fill to mark unreachable areas)
 void drop(int y, int x, int grid[M][N]) {
     if (y < 0 || y >= M || x < 0 || x >= N) return;
@@ -79,6 +76,13 @@ void playXonixGame(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, con
 
     int grid[M][N] = { 0 };
 
+    // Initialize inventory for backgrounds
+    Inventory inventory;
+    if (!inventory.loadBackgrounds()) {
+        cout << "Error: Failed to load backgrounds.\n";
+        return;
+    }
+
     Texture t1, t2, t3;
     if (!t1.loadFromFile("images/tiles.png") || !t2.loadFromFile("images/gameover.png") || !t3.loadFromFile("images/enemy.png")) {
         cout << "Error: Could not load game textures.\n";
@@ -96,6 +100,19 @@ void playXonixGame(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, con
     Text powerUpText("", font, 20);
     powerUpText.setFillColor(Color::Green);
     powerUpText.setPosition(20.0f, 40.0f);
+
+    // Background selection UI
+    vector<Text> backgroundOptions;
+    const auto& bgNames = inventory.getBackgroundNames();
+    for (size_t i = 0; i < bgNames.size(); ++i) {
+        Text option;
+        option.setFont(font);
+        option.setString(bgNames[i]);
+        option.setCharacterSize(18);
+        option.setFillColor(Color::White);
+        option.setPosition(20.0f, 70.0f + i * 25.0f);
+        backgroundOptions.push_back(option);
+    }
 
     int enemyCount = 4;
     Enemy enemies[10];
@@ -150,6 +167,20 @@ void playXonixGame(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, con
                     for (int i = 0; i < enemyCount; i++)
                         enemies[i].activateFreeze();
                     player.powerUps--;
+                }
+                if (e.key.code == Keyboard::B) {
+                    player.showBackgroundMenu = !player.showBackgroundMenu;
+                }
+            }
+
+            if (e.type == Event::MouseButtonPressed && player.showBackgroundMenu) {
+                Vector2i mousePos = Mouse::getPosition(window);
+                for (size_t i = 0; i < backgroundOptions.size(); ++i) {
+                    if (backgroundOptions[i].getGlobalBounds().contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
+                        inventory.setBackground(i);
+                        player.showBackgroundMenu = false; // Hide menu after selection
+                        break;
+                    }
                 }
             }
         }
@@ -219,6 +250,7 @@ void playXonixGame(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, con
         }
 
         window.clear();
+        inventory.drawBackground(window); // Draw background first
 
         for (int i = 0; i < M; i++)
             for (int j = 0; j < N; j++) {
@@ -246,15 +278,20 @@ void playXonixGame(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, con
         window.draw(scoreText);
         window.draw(powerUpText);
 
+        // Draw background selection UI
+        if (player.showBackgroundMenu) {
+            for (const auto& option : backgroundOptions) {
+                window.draw(option);
+            }
+        }
+
         if (!Game) window.draw(sGameover);
 
         window.display();
     }
 }
 
-
-
-//Multiplayer mode
+// Multiplayer mode
 void playMultiplayerXonixGame(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, const string& player1User, const string& player2User) {
     window.setTitle("Xonix Multiplayer Game");
 
@@ -262,6 +299,13 @@ void playMultiplayerXonixGame(PlayerList& pl, sf::RenderWindow& window, sf::Font
 
     int grid[M][N] = { 0 };
     int tileOwner[M][N] = { 0 }; // Tracks tile ownership (0: none, 1: Player 1, 2: Player 2)
+
+    // Initialize inventory for backgrounds
+    Inventory inventory;
+    if (!inventory.loadBackgrounds()) {
+        cout << "Error: Failed to load backgrounds.\n";
+        return;
+    }
 
     // Load textures
     Texture t1, t2, t3;
@@ -296,6 +340,19 @@ void playMultiplayerXonixGame(PlayerList& pl, sf::RenderWindow& window, sf::Font
     Text winnerText("", font, 30);
     winnerText.setFillColor(sf::Color::Yellow);
     winnerText.setPosition(350.0f, 150.0f);
+
+    // Background selection UI
+    vector<Text> backgroundOptions;
+    const auto& bgNames = inventory.getBackgroundNames();
+    for (size_t i = 0; i < bgNames.size(); ++i) {
+        Text option;
+        option.setFont(font);
+        option.setString(bgNames[i]);
+        option.setCharacterSize(18);
+        option.setFillColor(Color::White);
+        option.setPosition(20.0f, 70.0f + i * 25.0f);
+        backgroundOptions.push_back(option);
+    }
 
     int enemyCount = 4;
     Enemy enemies[10];
@@ -383,6 +440,22 @@ void playMultiplayerXonixGame(PlayerList& pl, sf::RenderWindow& window, sf::Font
                     player1.frozen = true;
                     player1.freezeClock.restart();
                     player2.powerUps--;
+                }
+                if (e.key.code == Keyboard::B) {
+                    player1.showBackgroundMenu = !player1.showBackgroundMenu;
+                    player2.showBackgroundMenu = player1.showBackgroundMenu; // Sync for both players
+                }
+            }
+
+            if (e.type == Event::MouseButtonPressed && player1.showBackgroundMenu) {
+                Vector2i mousePos = Mouse::getPosition(window);
+                for (size_t i = 0; i < backgroundOptions.size(); ++i) {
+                    if (backgroundOptions[i].getGlobalBounds().contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
+                        inventory.setBackground(i);
+                        player1.showBackgroundMenu = false;
+                        player2.showBackgroundMenu = false; // Hide menu for both players
+                        break;
+                    }
                 }
             }
         }
@@ -582,6 +655,7 @@ void playMultiplayerXonixGame(PlayerList& pl, sf::RenderWindow& window, sf::Font
 
         // Render
         window.clear();
+        inventory.drawBackground(window); // Draw background first
 
         // Draw grid
         for (int i = 0; i < M; i++)
@@ -643,6 +717,13 @@ void playMultiplayerXonixGame(PlayerList& pl, sf::RenderWindow& window, sf::Font
         window.draw(powerUpTextP1);
         window.draw(scoreTextP2);
         window.draw(powerUpTextP2);
+
+        // Draw background selection UI
+        if (player1.showBackgroundMenu) {
+            for (const auto& option : backgroundOptions) {
+                window.draw(option);
+            }
+        }
 
         if (!Game) {
             window.draw(sGameover);

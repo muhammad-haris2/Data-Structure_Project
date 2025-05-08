@@ -4,7 +4,7 @@
 
 using namespace std;
 
-void displayMainMenu(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, string& currentUser) {
+void displayMainMenu(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, string& currentUser, Inventory& inventory) {
     window.setTitle("Login and Registration System");
 
     sf::Text title("Login and Registration System", font, 30);
@@ -30,17 +30,17 @@ void displayMainMenu(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, s
                 sf::Vector2i mousePos = sf::Mouse::getPosition(window);
 
                 if (loginButton.getGlobalBounds().contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
-                    displayLoginPage(pl, window, font, currentUser);
+                    displayLoginPage(pl, window, font, currentUser, inventory);
                     if (!currentUser.empty()) {
-                        displayMenu(pl, window, font, currentUser);
+                        displayMenu(pl, window, font, currentUser, inventory);
                         currentUser.clear();
                     }
                 }
 
                 if (registerButton.getGlobalBounds().contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
-                    displayRegistrationPage(pl, window, font, currentUser);
+                    displayRegistrationPage(pl, window, font, currentUser, inventory);
                     if (!currentUser.empty()) {
-                        displayMenu(pl, window, font, currentUser);
+                        displayMenu(pl, window, font, currentUser, inventory);
                         currentUser.clear();
                     }
                 }
@@ -52,6 +52,7 @@ void displayMainMenu(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, s
         }
 
         window.clear();
+        inventory.drawBackground(window); // Draw background
         window.draw(title);
         window.draw(loginButton);
         window.draw(registerButton);
@@ -60,7 +61,7 @@ void displayMainMenu(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, s
     }
 }
 
-void displayLoginPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, string& currentUser) {
+void displayLoginPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, string& currentUser, Inventory& inventory) {
     window.setTitle("Login and Registration System");
 
     sf::Text usernameText("Username:", font, 20);
@@ -139,6 +140,7 @@ void displayLoginPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, 
         passwordField.setString(showPassword ? passwordInput : string(passwordInput.size(), '*'));
 
         window.clear();
+        inventory.drawBackground(window); // Draw background
         window.draw(usernameText);
         window.draw(passwordText);
         window.draw(loginButton);
@@ -150,7 +152,7 @@ void displayLoginPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, 
     }
 }
 
-void displayRegistrationPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, string& currentUser) {
+void displayRegistrationPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, string& currentUser, Inventory& inventory) {
     window.setTitle("Login and Registration System");
 
     sf::Text usernameText("Username:", font, 20);
@@ -253,6 +255,7 @@ void displayRegistrationPage(PlayerList& pl, sf::RenderWindow& window, sf::Font&
         emailField.setString(emailInput);
 
         window.clear();
+        inventory.drawBackground(window); // Draw background
         window.draw(usernameText);
         window.draw(passwordText);
         window.draw(nicknameText);
@@ -268,7 +271,7 @@ void displayRegistrationPage(PlayerList& pl, sf::RenderWindow& window, sf::Font&
     }
 }
 
-void displayPlaceholderPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, const string& currentUser) {
+void displayPlaceholderPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, const string& currentUser, Inventory& inventory) {
     window.setTitle("Feature Not Implemented");
 
     sf::Text title("Feature Not Implemented", font, 30);
@@ -294,13 +297,14 @@ void displayPlaceholderPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& 
         }
 
         window.clear();
+        inventory.drawBackground(window); // Draw background
         window.draw(title);
         window.draw(backButton);
         window.display();
     }
 }
 
-void displayProfilePage(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, const string& currentUser) {
+void displayProfilePage(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, const string& currentUser, Inventory& inventory) {
     window.setTitle("Profile");
 
     sf::Text title("Player Profile", font, 30);
@@ -329,6 +333,7 @@ void displayProfilePage(PlayerList& pl, sf::RenderWindow& window, sf::Font& font
         }
 
         window.clear();
+        inventory.drawBackground(window); // Draw background
         window.draw(title);
         window.draw(statsText);
         window.draw(backButton);
@@ -336,7 +341,7 @@ void displayProfilePage(PlayerList& pl, sf::RenderWindow& window, sf::Font& font
     }
 }
 
-void displayLeaderboardPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, const string& currentUser) {
+void displayLeaderboardPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, const string& currentUser, Inventory& inventory) {
     window.setTitle("Leaderboard");
 
     sf::Text title("Leaderboard", font, 30);
@@ -365,6 +370,7 @@ void displayLeaderboardPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& 
         }
 
         window.clear();
+        inventory.drawBackground(window); // Draw background
         window.draw(title);
         window.draw(leaderboardText);
         window.draw(backButton);
@@ -372,7 +378,7 @@ void displayLeaderboardPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& 
     }
 }
 
-bool displayMultiplayerLogin(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, const string& player1, string& player2) {
+bool displayMultiplayerLogin(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, const string& player1, string& player2, Inventory& inventory) {
     window.setTitle("Multiplayer Login");
 
     sf::Text title("Enter Player 2 Username", font, 30);
@@ -441,6 +447,7 @@ bool displayMultiplayerLogin(PlayerList& pl, sf::RenderWindow& window, sf::Font&
         usernameField.setString(usernameInput);
 
         window.clear();
+        inventory.drawBackground(window); // Draw background
         window.draw(title);
         window.draw(usernameText);
         window.draw(usernameField);

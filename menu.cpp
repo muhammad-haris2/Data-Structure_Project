@@ -6,7 +6,7 @@
 
 using namespace std;
 
-bool displayMatchTransitionPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, const string& player1, const string& player2) {
+bool displayMatchTransitionPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, const string& player1, const string& player2, Inventory& inventory) {
     window.setTitle("Match Found");
 
     sf::Text title("Match Found!", font, 30);
@@ -79,6 +79,7 @@ bool displayMatchTransitionPage(PlayerList& pl, sf::RenderWindow& window, sf::Fo
         }
 
         window.clear();
+        inventory.drawBackground(window); // Draw background
         window.draw(title);
         window.draw(player1Text);
         window.draw(player1Stats);
@@ -90,7 +91,7 @@ bool displayMatchTransitionPage(PlayerList& pl, sf::RenderWindow& window, sf::Fo
     return false;
 }
 
-bool displayMatchmakingPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, const string& currentUser, MatchmakingQueue& queue) {
+bool displayMatchmakingPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, const string& currentUser, MatchmakingQueue& queue, Inventory& inventory) {
     window.setTitle("Matchmaking");
 
     sf::Text title("Waiting for Match...", font, 30);
@@ -137,7 +138,7 @@ bool displayMatchmakingPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& 
                 string player1, player2;
                 if (queue.dequeue(player1, player2)) {
                     std::cout << "Match found: " << player1 << " vs " << player2 << std::endl;
-                    if (displayMatchTransitionPage(pl, window, font, player1, player2)) {
+                    if (displayMatchTransitionPage(pl, window, font, player1, player2, inventory)) {
                         playMultiplayerXonixGame(pl, window, font, player1, player2);
                     }
                     return true; // Return to menu after match
@@ -154,6 +155,7 @@ bool displayMatchmakingPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& 
         }
 
         window.clear();
+        inventory.drawBackground(window); // Draw background
         window.draw(title);
         window.draw(cancelButton);
         window.draw(statusMessage);
@@ -162,7 +164,7 @@ bool displayMatchmakingPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& 
     return false;
 }
 
-bool displayManualMatchPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, const string& currentUser) {
+bool displayManualMatchPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, const string& currentUser, Inventory& inventory) {
     window.setTitle("Manual Match");
 
     sf::Text title("Enter Friend's Username", font, 30);
@@ -219,7 +221,7 @@ bool displayManualMatchPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& 
                     else {
                         string friendsList = pl.getFriendsList(currentUser);
                         if (friendsList.find(usernameInput + "\n") != string::npos || friendsList.find(usernameInput) == friendsList.length() - usernameInput.length()) {
-                            if (displayMatchTransitionPage(pl, window, font, currentUser, usernameInput)) {
+                            if (displayMatchTransitionPage(pl, window, font, currentUser, usernameInput, inventory)) {
                                 playMultiplayerXonixGame(pl, window, font, currentUser, usernameInput);
                             }
                             return true;
@@ -239,6 +241,7 @@ bool displayManualMatchPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& 
         usernameField.setString(usernameInput);
 
         window.clear();
+        inventory.drawBackground(window); // Draw background
         window.draw(title);
         window.draw(usernameText);
         window.draw(usernameField);
@@ -250,7 +253,7 @@ bool displayManualMatchPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& 
     return false;
 }
 
-bool displayQueuePage(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, const string& currentUser, MatchmakingQueue& queue) {
+bool displayQueuePage(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, const string& currentUser, MatchmakingQueue& queue, Inventory& inventory) {
     window.setTitle("Matchmaking Queue");
 
     sf::Text title("Matchmaking Queue", font, 30);
@@ -318,6 +321,7 @@ bool displayQueuePage(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, 
         queueContents.setString(queueStr);
 
         window.clear();
+        inventory.drawBackground(window); // Draw background
         window.draw(title);
         window.draw(queueText);
         window.draw(queueContents);
@@ -328,7 +332,67 @@ bool displayQueuePage(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, 
     return false;
 }
 
-void displayMenu(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, string& currentUser) {
+bool displayInventoryPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, const std::string& currentUser, Inventory& inventory) {
+    window.setTitle("Inventory");
+
+    sf::Text title("Select Background Theme", font, 30);
+    title.setPosition(250, 50);
+
+    sf::Text backButton("Back", font, 20);
+    backButton.setPosition(350, 500);
+
+    sf::Text statusMessage("", font, 20);
+    statusMessage.setFillColor(sf::Color::Green);
+    statusMessage.setPosition(200, 450);
+
+    // Display background names
+    const auto& backgroundNames = inventory.getBackgroundNames();
+    vector<sf::Text> backgroundButtons;
+    for (size_t i = 0; i < backgroundNames.size(); ++i) {
+        sf::Text button(backgroundNames[i], font, 20);
+        button.setPosition(300, 100 + static_cast<float>(i * 50));
+        backgroundButtons.push_back(button);
+    }
+
+    while (window.isOpen()) {
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed) {
+                window.close();
+                return false;
+            }
+
+            if (event.type == sf::Event::MouseButtonPressed) {
+                sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+
+                // Check for background selection
+                for (size_t i = 0; i < backgroundButtons.size(); ++i) {
+                    if (backgroundButtons[i].getGlobalBounds().contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
+                        inventory.setBackground(static_cast<int>(i));
+                        statusMessage.setString("Selected: " + backgroundNames[i]);
+                    }
+                }
+
+                if (backButton.getGlobalBounds().contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
+                    return true;
+                }
+            }
+        }
+
+        window.clear();
+        inventory.drawBackground(window); // Draw background
+        window.draw(title);
+        for (const auto& button : backgroundButtons) {
+            window.draw(button);
+        }
+        window.draw(backButton);
+        window.draw(statusMessage);
+        window.display();
+    }
+    return false;
+}
+
+void displayMenu(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, string& currentUser, Inventory& inventory) {
     static MatchmakingQueue queue; // Persistent queue across menu visits
 
     window.setTitle("Main Menu");
@@ -351,17 +415,20 @@ void displayMenu(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, strin
     sf::Text levelButton("Levels", font, 20);
     levelButton.setPosition(350, 350);
 
+    sf::Text inventoryButton("Inventory", font, 20);
+    inventoryButton.setPosition(350, 400);
+
     sf::Text friendsButton("Friends", font, 20);
-    friendsButton.setPosition(350, 400);
+    friendsButton.setPosition(350, 450);
 
     sf::Text profileButton("Profile", font, 20);
-    profileButton.setPosition(350, 450);
+    profileButton.setPosition(350, 500);
 
     sf::Text leaderboardButton("Leaderboard", font, 20);
-    leaderboardButton.setPosition(350, 500);
+    leaderboardButton.setPosition(350, 550);
 
     sf::Text backButton("Log Out", font, 20);
-    backButton.setPosition(350, 550);
+    backButton.setPosition(350, 600);
 
     while (window.isOpen()) {
         sf::Event event;
@@ -378,26 +445,32 @@ void displayMenu(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, strin
                 }
 
                 if (multiplayerButton.getGlobalBounds().contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
-                    if (!displayMatchmakingPage(pl, window, font, currentUser, queue)) {
+                    if (!displayMatchmakingPage(pl, window, font, currentUser, queue, inventory)) {
                         window.close();
                     }
                 }
 
                 if (manualButton.getGlobalBounds().contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
-                    if (!displayManualMatchPage(pl, window, font, currentUser)) {
+                    if (!displayManualMatchPage(pl, window, font, currentUser, inventory)) {
                         window.close();
                     }
                 }
 
                 if (queueButton.getGlobalBounds().contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
-                    if (!displayQueuePage(pl, window, font, currentUser, queue)) {
+                    if (!displayQueuePage(pl, window, font, currentUser, queue, inventory)) {
                         window.close();
                     }
                 }
 
                 if (levelButton.getGlobalBounds().contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
                     window.setTitle("Level");
-                    displayPlaceholderPage(pl, window, font, currentUser);
+                    displayPlaceholderPage(pl, window, font, currentUser, inventory);
+                }
+
+                if (inventoryButton.getGlobalBounds().contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
+                    if (!displayInventoryPage(pl, window, font, currentUser, inventory)) {
+                        window.close();
+                    }
                 }
 
                 static bool friendsLoaded = false; // Static flag to ensure it persists across function calls
@@ -407,19 +480,18 @@ void displayMenu(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, strin
                         pl.loadFriendsAndRequests(); // Load friends and requests only once
                         friendsLoaded = true;        // Set the flag to true after loading
                     }
-                    bool backPressed = displayFriendPage(pl, window, font, currentUser);
+                    bool backPressed = displayFriendPage(pl, window, font, currentUser, inventory);
                     if (!backPressed) {
                         window.close();
                     }
                 }
 
-
                 if (profileButton.getGlobalBounds().contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
-                    displayProfilePage(pl, window, font, currentUser);
+                    displayProfilePage(pl, window, font, currentUser, inventory);
                 }
 
                 if (leaderboardButton.getGlobalBounds().contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
-                    displayLeaderboardPage(pl, window, font, currentUser);
+                    displayLeaderboardPage(pl, window, font, currentUser, inventory);
                 }
 
                 if (backButton.getGlobalBounds().contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
@@ -429,12 +501,14 @@ void displayMenu(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, strin
         }
 
         window.clear();
+        inventory.drawBackground(window); // Draw background
         window.draw(title);
         window.draw(singlePlayerButton);
         window.draw(multiplayerButton);
         window.draw(manualButton);
         window.draw(queueButton);
         window.draw(levelButton);
+        window.draw(inventoryButton);
         window.draw(friendsButton);
         window.draw(profileButton);
         window.draw(leaderboardButton);
