@@ -64,6 +64,10 @@ void displayMainMenu(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, s
 void displayLoginPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, string& currentUser, Inventory& inventory) {
     window.setTitle("Login and Registration System");
 
+    // Set default sound and theme
+    inventory.setSound(1); // Default: Sound 1 (1.mp3)
+    inventory.setBackground(1); // Default: Theme 1 (e.g., "normal")
+
     sf::Text usernameText("Username:", font, 20);
     usernameText.setPosition(200, 200);
 
@@ -121,6 +125,14 @@ void displayLoginPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, 
                 if (loginButton.getGlobalBounds().contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
                     if (pl.login(usernameInput, passwordInput)) {
                         currentUser = usernameInput;
+                        // Set the player's preferred theme and sound
+                        Player* player = pl.getPlayerByUsername(currentUser);
+                        if (player && player->preferredThemeID > 0) {
+                            inventory.setBackground(player->preferredThemeID);
+                        }
+                        if (player && player->preferredSoundID > 0) {
+                            inventory.setSound(player->preferredSoundID);
+                        }
                         errorMessage.setString("Login successful! Welcome.");
                         errorMessage.setFillColor(sf::Color::Green);
                         return;

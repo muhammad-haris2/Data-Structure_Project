@@ -18,6 +18,7 @@ int main() {
 
     // Initialize Inventory
     Inventory inventory;
+
     if (!inventory.loadBackgrounds()) {
         cout << "Error: Failed to load backgrounds.\n";
         return 1;

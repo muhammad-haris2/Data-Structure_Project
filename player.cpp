@@ -1,5 +1,7 @@
 #include "player.h"
 #include <iostream>
+#include <fstream>
+#include <ctime>
 
 using namespace std;
 
@@ -7,7 +9,9 @@ using namespace std;
 FriendNode::FriendNode(const string& id) : friendID(id), next(nullptr) {}
 
 // Player constructor
-Player::Player() : playerID(0), totalScore(0), totalPowerUps(0), friends(nullptr), pendingRequests(nullptr), next(nullptr) {}
+Player::Player() : playerID(0), totalScore(0), totalPowerUps(0), preferredThemeID(1), preferredSoundID(1), // Default to theme ID 1 and sound ID 1
+friends(nullptr), pendingRequests(nullptr), next(nullptr) {
+}
 
 // ArrayList implementation
 ArrayList::ArrayList(int initialCapacity) : capacity(initialCapacity > 0 ? initialCapacity : 10), size(0) {
@@ -50,7 +54,7 @@ int HashTable::hashFunction(const string& key) const {
 }
 
 HashTable::HashTable(int size) : tableSize(size) {
-    table = new HashNode * [tableSize];
+    table = new HashNode * [tableSize]();
     for (int i = 0; i < tableSize; i++) table[i] = nullptr;
 }
 
@@ -211,7 +215,7 @@ void Leaderboard::loadFromFile(const ArrayList& players) {
         // Verify player exists
         bool valid = false;
         for (int i = 0; i < players.getSize(); i++) {
-            if (players.getPlayer(i)->playerID == playerID) {
+            if (players.getPlayer(i) && players.getPlayer(i)->playerID == playerID) {
                 valid = true;
                 break;
             }
@@ -226,7 +230,7 @@ void Leaderboard::loadFromFile(const ArrayList& players) {
 }
 
 // PlayerList implementation
-PlayerList::PlayerList() : head(nullptr), idCounter(1) {
+PlayerList::PlayerList() : head(nullptr), idCounter(1), playerArray(10), playerHash(100) {
     loadFromFile();
 }
 
@@ -267,6 +271,8 @@ void PlayerList::registerPlayer(const string& uname, const string& pass, const s
     newPlayer->playerID = idCounter++;
     newPlayer->totalScore = 0;
     newPlayer->totalPowerUps = 0;
+    newPlayer->preferredThemeID = 1; // Default theme (normal.jpg)
+    newPlayer->preferredSoundID = 1; // Default sound (1.mp3)
     newPlayer->next = head;
     head = newPlayer;
 
@@ -278,13 +284,19 @@ void PlayerList::registerPlayer(const string& uname, const string& pass, const s
 }
 
 void PlayerList::saveToFile(Player* p) {
+    if (!p) {
+        cout << "Error: Null player pointer.\n";
+        return;
+    }
     ofstream fout("players.txt", ios::app);
     if (!fout) {
-        cout << "Error: Unable to open file for saving.\n";
+        cout << "Error: Unable to open players.txt for saving.\n";
         return;
     }
     fout << p->username << "|" << p->password << "|" << p->nickname << "|" << p->email
-        << "|" << p->timestamp << "|" << p->playerID << "|" << p->totalScore << "|" << p->totalPowerUps << endl;
+        << "|" << p->timestamp << "|" << p->playerID << "|" << p->totalScore
+        << "|" << p->totalPowerUps << "|" << p->preferredThemeID << "|"
+        << p->preferredSoundID << endl;
     fout.close();
 }
 
@@ -309,20 +321,43 @@ void PlayerList::loadFromFile() {
             case 5: p->playerID = stoi(token); break;
             case 6: p->totalScore = stoi(token); break;
             case 7: p->totalPowerUps = stoi(token); break;
+            case 8: p->preferredThemeID = stoi(token); break;
+            case 9: p->preferredSoundID = stoi(token); break;
             }
             line.erase(0, pos + 1);
         }
-        if (field == 7) {
-            p->totalPowerUps = stoi(line);
+        // Handle backward compatibility
+        try {
+            if (field == 9) {
+                p->preferredSoundID = stoi(line);
+            }
+            else if (field == 8) {
+                p->preferredThemeID = stoi(line);
+                p->preferredSoundID = 1; // Default sound
+            }
+            else if (field == 7) {
+                p->totalPowerUps = stoi(line);
+                p->preferredThemeID = 1;
+                p->preferredSoundID = 1;
+            }
+            else if (field == 6) {
+                p->totalScore = stoi(line);
+                p->totalPowerUps = 0;
+                p->preferredThemeID = 1;
+                p->preferredSoundID = 1;
+            }
+            else if (field == 5) {
+                p->playerID = stoi(line);
+                p->totalScore = 0;
+                p->totalPowerUps = 0;
+                p->preferredThemeID = 1;
+                p->preferredSoundID = 1;
+            }
         }
-        else if (field == 6) {
-            p->totalScore = stoi(line);
-            p->totalPowerUps = 0;
-        }
-        else {
-            p->playerID = stoi(line);
-            p->totalScore = 0;
-            p->totalPowerUps = 0;
+        catch (const std::exception& e) {
+            cout << "Error parsing line in players.txt: " << line << endl;
+            delete p;
+            continue;
         }
         p->next = head;
         head = p;
@@ -332,27 +367,39 @@ void PlayerList::loadFromFile() {
     }
     fin.close();
     leaderboard.loadFromFile(playerArray);
+    loadFriendsAndRequests();
 }
 
 bool PlayerList::sendFriendRequest(const string& sender, const string& receiver) {
     int senderIdx = playerHash.find(sender);
     int receiverIdx = playerHash.find(receiver);
     if (senderIdx == -1 || receiverIdx == -1 || sender == receiver) {
+        cout << "Friend request failed: Invalid sender or receiver.\n";
         return false;
     }
 
     Player* senderPlayer = playerArray.getPlayer(senderIdx);
     Player* receiverPlayer = playerArray.getPlayer(receiverIdx);
+    if (!senderPlayer || !receiverPlayer) {
+        cout << "Friend request failed: Player data not found.\n";
+        return false;
+    }
 
     FriendNode* current = senderPlayer->friends;
     while (current) {
-        if (current->friendID == receiver) return false;
+        if (current->friendID == receiver) {
+            cout << "Friend request failed: Already friends.\n";
+            return false;
+        }
         current = current->next;
     }
 
     current = receiverPlayer->pendingRequests;
     while (current) {
-        if (current->friendID == sender) return false;
+        if (current->friendID == sender) {
+            cout << "Friend request failed: Request already pending.\n";
+            return false;
+        }
         current = current->next;
     }
 
@@ -360,6 +407,7 @@ bool PlayerList::sendFriendRequest(const string& sender, const string& receiver)
     newRequest->next = receiverPlayer->pendingRequests;
     receiverPlayer->pendingRequests = newRequest;
     savePendingRequest(receiver, sender);
+    cout << "Friend request sent.\n";
     return true;
 }
 
@@ -373,6 +421,10 @@ bool PlayerList::acceptFriendRequest(const string& acceptor, const string& reque
 
     Player* acceptorPlayer = playerArray.getPlayer(acceptorIdx);
     Player* requesterPlayer = playerArray.getPlayer(requesterIdx);
+    if (!acceptorPlayer || !requesterPlayer) {
+        cout << "Accept failed: Player data not found.\n";
+        return false;
+    }
 
     FriendNode* current = acceptorPlayer->pendingRequests;
     FriendNode* prev = nullptr;
@@ -412,6 +464,10 @@ bool PlayerList::rejectFriendRequest(const string& rejector, const string& reque
     }
 
     Player* rejectorPlayer = playerArray.getPlayer(rejectorIdx);
+    if (!rejectorPlayer) {
+        cout << "Reject failed: Rejector data not found.\n";
+        return false;
+    }
 
     FriendNode* current = rejectorPlayer->pendingRequests;
     FriendNode* prev = nullptr;
@@ -438,6 +494,8 @@ string PlayerList::getFriendsList(const string& username) const {
     if (idx == -1) return "User not found.";
 
     Player* player = playerArray.getPlayer(idx);
+    if (!player) return "Player data not found.";
+
     string result = "Friends of " + username + ":\n";
     FriendNode* current = player->friends;
     if (!current) result += "No friends.";
@@ -453,6 +511,8 @@ string PlayerList::getPendingRequests(const string& username) const {
     if (idx == -1) return "User not found.";
 
     Player* player = playerArray.getPlayer(idx);
+    if (!player) return "Player data not found.";
+
     string result = "Pending requests for " + username + ":\n";
     FriendNode* current = player->pendingRequests;
     if (!current) result += "No pending requests.";
@@ -476,7 +536,7 @@ void PlayerList::saveFriend(const string& username, const string& friendID) {
 void PlayerList::savePendingRequest(const string& username, const string& requesterID) {
     ofstream fout("pending_requests.txt", ios::app);
     if (!fout) {
-        cout << "Error: Unable to open pending requests file.\n";
+        cout << "Error: Unable to open pending_requests.txt.\n";
         return;
     }
     fout << username << "|" << requesterID << endl;
@@ -538,9 +598,11 @@ void PlayerList::loadFriendsAndRequests() {
             int friendIdx = playerHash.find(friendID);
             if (userIdx != -1 && friendIdx != -1) {
                 Player* user = playerArray.getPlayer(userIdx);
-                FriendNode* newFriend = new FriendNode(friendID);
-                newFriend->next = user->friends;
-                user->friends = newFriend;
+                if (user) {
+                    FriendNode* newFriend = new FriendNode(friendID);
+                    newFriend->next = user->friends;
+                    user->friends = newFriend;
+                }
             }
         }
         fin.close();
@@ -556,16 +618,18 @@ void PlayerList::loadFriendsAndRequests() {
             int userIdx = playerHash.find(username);
             if (userIdx != -1) {
                 Player* user = playerArray.getPlayer(userIdx);
-                FriendNode* newRequest = new FriendNode(requesterID);
-                newRequest->next = user->pendingRequests;
-                user->pendingRequests = newRequest;
+                if (user) {
+                    FriendNode* newRequest = new FriendNode(requesterID);
+                    newRequest->next = user->pendingRequests;
+                    user->pendingRequests = newRequest;
+                }
             }
         }
         fin.close();
     }
 }
 
-void PlayerList::savePlayerStats(const string& username, int score, int powerUps) {
+void PlayerList::savePlayerStats(const string& username, int score, int powerUps, int preferredThemeID, int preferredSoundID) {
     int idx = playerHash.find(username);
     if (idx == -1) {
         cout << "Error: User " << username << " not found.\n";
@@ -573,8 +637,15 @@ void PlayerList::savePlayerStats(const string& username, int score, int powerUps
     }
 
     Player* player = playerArray.getPlayer(idx);
+    if (!player) {
+        cout << "Error: Player data not found for " << username << ".\n";
+        return;
+    }
+
     player->totalScore += score;
     player->totalPowerUps += powerUps;
+    player->preferredThemeID = preferredThemeID;
+    player->preferredSoundID = preferredSoundID;
 
     // Update leaderboard
     updateLeaderboard(player->playerID, player->totalScore);
@@ -600,7 +671,8 @@ void PlayerList::savePlayerStats(const string& username, int score, int powerUps
         if (user == username) {
             temp << user << "|" << player->password << "|" << player->nickname << "|" << player->email
                 << "|" << player->timestamp << "|" << player->playerID << "|"
-                << player->totalScore << "|" << player->totalPowerUps << endl;
+                << player->totalScore << "|" << player->totalPowerUps << "|"
+                << player->preferredThemeID << "|" << player->preferredSoundID << endl;
         }
         else {
             temp << line << endl;
@@ -623,8 +695,14 @@ string PlayerList::getPlayerStats(const string& username) const {
     if (idx == -1) return "User not found.";
 
     Player* player = playerArray.getPlayer(idx);
-    return "Username: " + player->username + "\nTotal Score: " + to_string(player->totalScore) +
-        "\nTotal Power-Ups: " + to_string(player->totalPowerUps);
+    if (!player) return "Player data not found.";
+
+    return "Username: " + player->username + "\nNickname: " + player->nickname +
+        "\nEmail: " + player->email + "\nRegistered: " + player->timestamp +
+        "\nTotal Score: " + to_string(player->totalScore) +
+        "\nTotal Power-Ups: " + to_string(player->totalPowerUps) +
+        "\nPreferred Theme ID: " + to_string(player->preferredThemeID) +
+        "\nPreferred Sound ID: " + to_string(player->preferredSoundID);
 }
 
 void PlayerList::updateLeaderboard(int playerID, int score) {
@@ -633,6 +711,20 @@ void PlayerList::updateLeaderboard(int playerID, int score) {
 
 string PlayerList::getLeaderboard() const {
     return leaderboard.getTopPlayers(playerArray);
+}
+
+int PlayerList::getPlayerScore(const string& username) const {
+    int idx = playerHash.find(username);
+    if (idx == -1) return 0;
+    Player* player = playerArray.getPlayer(idx);
+    return player ? player->totalScore : 0;
+}
+
+Player* PlayerList::getPlayerByUsername(const string& username) const {
+    int idx = playerHash.find(username);
+    if (idx == -1) return nullptr;
+    Player* player = playerArray.getPlayer(idx);
+    return player;
 }
 
 PlayerList::~PlayerList() {
@@ -654,18 +746,4 @@ PlayerList::~PlayerList() {
         }
         delete temp;
     }
-}
-
-
-int PlayerList::getPlayerScore(const std::string& username) const {
-    int idx = playerHash.find(username);
-    if (idx == -1) return 0;
-    Player* player = playerArray.getPlayer(idx);
-    return player->totalScore;
-}
-
-Player* PlayerList::getPlayerByUsername(const std::string& username) const {
-    int idx = playerHash.find(username);
-    if (idx == -1) return nullptr;
-    return playerArray.getPlayer(idx);
 }
