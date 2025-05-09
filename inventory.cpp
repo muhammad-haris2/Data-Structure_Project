@@ -2,8 +2,8 @@
 #include <iostream>
 #include <fstream>
 
-const std::string Inventory::BACKGROUND_PATH = "D:/part2/images/backgrounds/";
-const std::string Inventory::SOUND_PATH = "D:/part2/music/";
+const std::string Inventory::BACKGROUND_PATH = "images/backgrounds/";
+const std::string Inventory::SOUND_PATH = "music/";
 
 Inventory::Inventory() : root(nullptr), soundRoot(nullptr), currentTheme(nullptr), currentSound(nullptr), themeCount(0), soundCount(0) {
     backgroundSprite.setScale(800.0f / 1920.0f, 600.0f / 1080.0f); // Scale to 800x600 window

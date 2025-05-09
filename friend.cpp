@@ -41,7 +41,7 @@ bool displayFriendPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& font,
 
     sf::Text errorMessage("", font, 20);
     errorMessage.setFillColor(sf::Color::Red);
-    errorMessage.setPosition(200, 550);
+    errorMessage.setPosition(200, 650);
 
     string inputUsername;
 

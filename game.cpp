@@ -3956,7 +3956,7 @@ void playXonixGame(PlayerList& pl, RenderWindow& window, Font& font, const strin
     }
 
     Sprite sTile(t1), sGameover(t2), sEnemy(t3);
-    sGameover.setPosition(200.0f + offsetX, 150.0f + offsetY);
+    sGameover.setPosition(170.0f + offsetX, 150.0f + offsetY);
     sEnemy.setOrigin(20, 20);
 
     Text scoreText("", font, 20);
@@ -4225,7 +4225,7 @@ void playMultiplayerXonixGame(PlayerList& pl, RenderWindow& window, Font& font, 
     }
 
     Sprite sTile(t1), sGameover(t2), sEnemy(t3);
-    sGameover.setPosition(200.0f + offsetX, 150.0f + offsetY);
+    sGameover.setPosition(170.0f + offsetX, 150.0f + offsetY);
     sEnemy.setOrigin(20, 20);
 
     Text scoreTextP1("", font, 20);

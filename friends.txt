@@ -17,3 +17,7 @@ ahmad|waheed
 waheed|ahmad
 bilal|shahzad
 shahzad|bilal
+haris|ibrahom
+ibrahom|haris
+bilal|Raza
+Raza|bilal
