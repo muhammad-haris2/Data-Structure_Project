@@ -7,6 +7,7 @@
 
 void displayMenu(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, std::string& currentUser, Inventory& inventory);
 bool displayMatchmakingPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, const std::string& currentUser, MatchmakingQueue& queue, Inventory& inventory);
+//sf::RectangleShape createButton(float x, float y, float width, float height, sf::Color fillColor);
 bool displayMatchTransitionPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, const std::string& player1, const std::string& player2, Inventory& inventory);
 bool displayManualMatchPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, const std::string& currentUser, Inventory& inventory);
 bool displayQueuePage(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, const std::string& currentUser, MatchmakingQueue& queue, Inventory& inventory);

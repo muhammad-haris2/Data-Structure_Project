@@ -20,6 +20,8 @@ struct Player {
     int totalPowerUps;
     int preferredThemeID;
     int preferredSoundID;
+    int gamesWon;
+    int gamesLost;
     FriendNode* friends;
     FriendNode* pendingRequests;
     Player* next;
@@ -99,6 +101,9 @@ public:
     void registerPlayer(const std::string& uname, const std::string& pass, const std::string& nick, const std::string& email);
     void saveToFile(Player* p);
     void loadFromFile();
+    void updatePlayerWins(const std::string& username, int wins);
+    void updatePlayerLosses(const std::string& username, int losses);
+    std::pair<int, int> getPlayerWinLoss(const std::string& username) const;
     bool sendFriendRequest(const std::string& sender, const std::string& receiver);
     bool acceptFriendRequest(const std::string& acceptor, const std::string& requester);
     bool rejectFriendRequest(const std::string& rejector, const std::string& requester);

@@ -10,7 +10,7 @@ FriendNode::FriendNode(const string& id) : friendID(id), next(nullptr) {}
 
 // Player constructor
 Player::Player() : playerID(0), totalScore(0), totalPowerUps(0), preferredThemeID(1), preferredSoundID(1), // Default to theme ID 1 and sound ID 1
-friends(nullptr), pendingRequests(nullptr), next(nullptr) {
+gamesWon(0), gamesLost(0), friends(nullptr), pendingRequests(nullptr), next(nullptr) {
 }
 
 // ArrayList implementation
@@ -243,6 +243,7 @@ string PlayerList::getCurrentTimestamp() const {
     return timestamp;
 }
 
+
 bool PlayerList::usernameExists(const string& uname) const {
     return playerHash.find(uname) != -1;
 }
@@ -288,16 +289,65 @@ void PlayerList::saveToFile(Player* p) {
         cout << "Error: Null player pointer.\n";
         return;
     }
-    ofstream fout("players.txt", ios::app);
-    if (!fout) {
-        cout << "Error: Unable to open players.txt for saving.\n";
+
+    ifstream fin("players.txt");
+    if (!fin) {
+        // If the file doesn't exist, treat this as a new registration
+        ofstream fout("players.txt", ios::app);
+        if (!fout) {
+            cout << "Error: Unable to open players.txt for saving.\n";
+            return;
+        }
+        fout << p->username << "|" << p->password << "|" << p->nickname << "|" << p->email
+            << "|" << p->timestamp << "|" << p->playerID << "|" << p->totalScore
+            << "|" << p->totalPowerUps << "|" << p->preferredThemeID << "|"
+            << p->preferredSoundID << "|" << p->gamesWon << "|" << p->gamesLost << endl;
+        fout.close();
         return;
     }
-    fout << p->username << "|" << p->password << "|" << p->nickname << "|" << p->email
-        << "|" << p->timestamp << "|" << p->playerID << "|" << p->totalScore
-        << "|" << p->totalPowerUps << "|" << p->preferredThemeID << "|"
-        << p->preferredSoundID << endl;
-    fout.close();
+
+    ofstream temp("temp.txt");
+    if (!temp) {
+        cout << "Error: Cannot open temp.txt.\n";
+        fin.close();
+        return;
+    }
+
+    string line;
+    bool found = false;
+    while (getline(fin, line)) {
+        size_t pos = line.find('|');
+        string user = line.substr(0, pos);
+        if (user == p->username) {
+            temp << p->username << "|" << p->password << "|" << p->nickname << "|" << p->email
+                << "|" << p->timestamp << "|" << p->playerID << "|" << p->totalScore
+                << "|" << p->totalPowerUps << "|" << p->preferredThemeID << "|"
+                << p->preferredSoundID << "|" << p->gamesWon << "|" << p->gamesLost << endl;
+            found = true;
+        }
+        else {
+            temp << line << endl;
+        }
+    }
+
+    if (!found) {
+        // New player registration
+        temp << p->username << "|" << p->password << "|" << p->nickname << "|" << p->email
+            << "|" << p->timestamp << "|" << p->playerID << "|" << p->totalScore
+            << "|" << p->totalPowerUps << "|" << p->preferredThemeID << "|"
+            << p->preferredSoundID << "|" << p->gamesWon << "|" << p->gamesLost << endl;
+    }
+
+    fin.close();
+    temp.close();
+
+    if (remove("players.txt") != 0) {
+        cout << "Error: Failed to delete players.txt.\n";
+        return;
+    }
+    if (rename("temp.txt", "players.txt") != 0) {
+        cout << "Error: Failed to rename temp.txt.\n";
+    }
 }
 
 void PlayerList::loadFromFile() {
@@ -323,6 +373,8 @@ void PlayerList::loadFromFile() {
             case 7: p->totalPowerUps = stoi(token); break;
             case 8: p->preferredThemeID = stoi(token); break;
             case 9: p->preferredSoundID = stoi(token); break;
+            case 10: p->gamesWon = stoi(token); break;
+            case 11: p->gamesLost = stoi(token); break;
             }
             line.erase(0, pos + 1);
         }
@@ -369,6 +421,32 @@ void PlayerList::loadFromFile() {
     leaderboard.loadFromFile(playerArray);
     loadFriendsAndRequests();
 }
+
+void PlayerList::updatePlayerWins(const std::string& username, int wins) {
+    Player* player = getPlayerByUsername(username);
+    if (player) {
+        player->gamesWon += wins;
+        saveToFile(player); // Save updated stats to file
+    }
+}
+
+void PlayerList::updatePlayerLosses(const std::string& username, int losses) {
+    Player* player = getPlayerByUsername(username);
+    if (player) {
+        player->gamesLost += losses;
+        saveToFile(player); // Save updated stats to file
+    }
+}
+
+std::pair<int, int> PlayerList::getPlayerWinLoss(const std::string& username) const {
+    Player* player = getPlayerByUsername(username);
+    if (player) {
+        return { player->gamesWon, player->gamesLost };
+    }
+    return { 0, 0 }; // Default if player not found
+}
+
+
 
 bool PlayerList::sendFriendRequest(const string& sender, const string& receiver) {
     int senderIdx = playerHash.find(sender);
@@ -587,6 +665,31 @@ void PlayerList::removePendingRequest(const string& username, const string& requ
 }
 
 void PlayerList::loadFriendsAndRequests() {
+    // Clear existing friends and requests
+    Player* currentPlayer = head;
+    while (currentPlayer) {
+        // Clear friends list
+        FriendNode* currentFriend = currentPlayer->friends;
+        while (currentFriend) {
+            FriendNode* temp = currentFriend;
+            currentFriend = currentFriend->next;
+            delete temp;
+        }
+        currentPlayer->friends = nullptr;
+
+        // Clear pending requests list
+        FriendNode* currentRequest = currentPlayer->pendingRequests;
+        while (currentRequest) {
+            FriendNode* temp = currentRequest;
+            currentRequest = currentRequest->next;
+            delete temp;
+        }
+        currentPlayer->pendingRequests = nullptr;
+
+        currentPlayer = currentPlayer->next;
+    }
+
+    // Load friends from file
     ifstream fin("friends.txt");
     if (fin) {
         string line;
@@ -599,15 +702,28 @@ void PlayerList::loadFriendsAndRequests() {
             if (userIdx != -1 && friendIdx != -1) {
                 Player* user = playerArray.getPlayer(userIdx);
                 if (user) {
-                    FriendNode* newFriend = new FriendNode(friendID);
-                    newFriend->next = user->friends;
-                    user->friends = newFriend;
+                    // Check if friend already exists
+                    FriendNode* current = user->friends;
+                    bool exists = false;
+                    while (current) {
+                        if (current->friendID == friendID) {
+                            exists = true;
+                            break;
+                        }
+                        current = current->next;
+                    }
+                    if (!exists) {
+                        FriendNode* newFriend = new FriendNode(friendID);
+                        newFriend->next = user->friends;
+                        user->friends = newFriend;
+                    }
                 }
             }
         }
         fin.close();
     }
 
+    // Load pending requests from file
     fin.open("pending_requests.txt");
     if (fin) {
         string line;
@@ -619,15 +735,28 @@ void PlayerList::loadFriendsAndRequests() {
             if (userIdx != -1) {
                 Player* user = playerArray.getPlayer(userIdx);
                 if (user) {
-                    FriendNode* newRequest = new FriendNode(requesterID);
-                    newRequest->next = user->pendingRequests;
-                    user->pendingRequests = newRequest;
+                    // Check if request already exists
+                    FriendNode* current = user->pendingRequests;
+                    bool exists = false;
+                    while (current) {
+                        if (current->friendID == requesterID) {
+                            exists = true;
+                            break;
+                        }
+                        current = current->next;
+                    }
+                    if (!exists) {
+                        FriendNode* newRequest = new FriendNode(requesterID);
+                        newRequest->next = user->pendingRequests;
+                        user->pendingRequests = newRequest;
+                    }
                 }
             }
         }
         fin.close();
     }
 }
+
 
 void PlayerList::savePlayerStats(const string& username, int score, int powerUps, int preferredThemeID, int preferredSoundID) {
     int idx = playerHash.find(username);
@@ -672,7 +801,8 @@ void PlayerList::savePlayerStats(const string& username, int score, int powerUps
             temp << user << "|" << player->password << "|" << player->nickname << "|" << player->email
                 << "|" << player->timestamp << "|" << player->playerID << "|"
                 << player->totalScore << "|" << player->totalPowerUps << "|"
-                << player->preferredThemeID << "|" << player->preferredSoundID << endl;
+                << player->preferredThemeID << "|" << player->preferredSoundID << "|"
+                << player->gamesWon << "|" << player->gamesLost << endl;
         }
         else {
             temp << line << endl;
@@ -701,6 +831,8 @@ string PlayerList::getPlayerStats(const string& username) const {
         "\nEmail: " + player->email + "\nRegistered: " + player->timestamp +
         "\nTotal Score: " + to_string(player->totalScore) +
         "\nTotal Power-Ups: " + to_string(player->totalPowerUps) +
+        "\nGames Won: " + to_string(player->gamesWon) +
+        "\nGames Lost: " + to_string(player->gamesLost) +
         "\nPreferred Theme ID: " + to_string(player->preferredThemeID) +
         "\nPreferred Sound ID: " + to_string(player->preferredSoundID);
 }
