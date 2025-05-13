@@ -1,5 +1,4 @@
 #include "matchmaking.h"
-#include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -18,7 +17,12 @@ void MatchmakingQueue::heapifyUp(int index) {
     while (index > 0) {
         int parent = getParent(index);
         if (*heap[index] < *heap[parent]) break; // Max-heap: higher score is higher priority
-        std::swap(heap[index], heap[parent]);
+
+        // Swap without using std::swap
+        QueueNode* temp = heap[index];
+        heap[index] = heap[parent];
+        heap[parent] = temp;
+
         index = parent;
     }
 }
@@ -33,7 +37,11 @@ void MatchmakingQueue::heapifyDown(int index) {
         if (right < size && *heap[right] > *heap[largest]) largest = right;
 
         if (largest != index) {
-            std::swap(heap[index], heap[largest]);
+            // Swap without using std::swap
+            QueueNode* temp = heap[index];
+            heap[index] = heap[largest];
+            heap[largest] = temp;
+
             index = largest;
         }
         else {
@@ -132,7 +140,12 @@ void MatchmakingQueue::saveQueue() const {
         if (heap[i]) {
             // Escape spaces in username to handle multi-word usernames
             std::string escapedUsername = heap[i]->username;
-            std::replace(escapedUsername.begin(), escapedUsername.end(), ' ', '_');
+            // Replace spaces with underscores without using std::replace
+            for (size_t j = 0; j < escapedUsername.length(); j++) {
+                if (escapedUsername[j] == ' ') {
+                    escapedUsername[j] = '_';
+                }
+            }
             outFile << heap[i]->playerID << " " << heap[i]->score << " " << escapedUsername << "\n";
         }
     }
@@ -162,7 +175,12 @@ void MatchmakingQueue::loadQueue() {
         std::string username;
         if (iss >> playerID >> score >> username) {
             // Replace underscores with spaces in username
-            std::replace(username.begin(), username.end(), '_', ' ');
+            // Without using std::replace
+            for (size_t j = 0; j < username.length(); j++) {
+                if (username[j] == '_') {
+                    username[j] = ' ';
+                }
+            }
             if (size < MAX_SIZE && !isPlayerInQueue(username)) {
                 heap[size] = new QueueNode(playerID, score, username);
                 heapifyUp(size);

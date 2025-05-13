@@ -4,10 +4,8 @@
 #include "game.h"
 #include <iostream>
 #include <sstream>
-#include <vector>
 
 using namespace std;
-
 
 bool displayMatchTransitionPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, const string& player1, const string& player2, Inventory& inventory) {
     window.setTitle("Match Found");
@@ -515,6 +513,7 @@ bool displayInventoryPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& fo
 }
 
 void displayMenu(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, string& currentUser, Inventory& inventory) {
+    // Create and initialize a static MatchmakingQueue instead of using vector
     static MatchmakingQueue queue;
 
     window.setTitle("Main Menu");
@@ -526,9 +525,9 @@ void displayMenu(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, strin
     title.setOutlineColor(sf::Color::Black);
     title.setOutlineThickness(1);
 
-    // Left column text labels
-    sf::Text leftLabels[6];
-    const char* leftLabelStrings[6] = { "Single Player", "Resume Game", "Multiplayer", "Manual", "Queue" };
+    // Left column text labels - using static arrays instead of vectors
+    sf::Text leftLabels[5];
+    const char* leftLabelStrings[5] = { "Single Player", "Resume Game", "Multiplayer", "Manual", "Queue" };
     for (int i = 0; i < 5; ++i) {
         leftLabels[i].setFont(font);
         leftLabels[i].setString(leftLabelStrings[i]);
@@ -539,7 +538,7 @@ void displayMenu(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, strin
         leftLabels[i].setOutlineThickness(1);
     }
 
-    // Right column text labels
+    // Right column text labels - using static arrays instead of vectors
     sf::Text rightLabels[5];
     const char* rightLabelStrings[5] = { "Inventory", "Friends", "Profile", "Leaderboard", "Log Out" };
     for (int i = 0; i < 5; ++i) {
@@ -632,7 +631,7 @@ void displayMenu(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, strin
 
         // Update text colors based on mouse hover
         sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
-        for (int i = 0; i < 6; ++i) {
+        for (int i = 0; i < 5; ++i) {
             if (i == 1 && !hasSaveFile) {
                 leftLabels[i].setFillColor(sf::Color(150, 150, 150)); // Gray out Resume Game if no save
             }
@@ -648,7 +647,7 @@ void displayMenu(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, strin
         window.clear();
         inventory.drawBackground(window);
         window.draw(title);
-        for (int i = 0; i < 6; ++i) {
+        for (int i = 0; i < 5; ++i) {
             window.draw(leftLabels[i]);
         }
         for (int i = 0; i < 5; ++i) {

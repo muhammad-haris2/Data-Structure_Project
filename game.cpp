@@ -2,13 +2,10 @@
 #include <SFML/Audio.hpp>
 #include <time.h>
 #include <string>
-#include"menu.h"
-#include"fstream"
+#include "menu.h"
+#include "fstream"
 #include <sstream>
 #include <iostream>
-#include <algorithm>
-#include <cctype>
-
 
 using namespace std;
 using namespace sf;
@@ -41,9 +38,9 @@ void toLowerCase(char* str) {
 }
 
 // Helper function to map background names to colors
-Color getColorForBackground(const string& name) {
+Color getColorForBackground(const char* name) {
     char lowerName[50];
-    manualStringCopy(lowerName, name.c_str(), sizeof(lowerName));
+    manualStringCopy(lowerName, name, sizeof(lowerName));
     toLowerCase(lowerName);
     if (strcmp(lowerName, "blue") == 0) return Color(135, 206, 250); // Light blue
     if (strcmp(lowerName, "white") == 0) return Color::White;
@@ -102,7 +99,6 @@ void Enemy::move(int grid[M][N], float deltaTime, int tileSize) {
     }
 
     if (!collideHorizontal && !collideVertical && gridY >= 0 && gridY < M && gridX >= 0 && gridX < N) {
-        // Collide with borders (1), Player 1 path (2), Player 2 path (3 in multiplayer), or captured tiles (3 in single-player, 1 in multiplayer)
         if (grid[gridY][gridX] == 1 || grid[gridY][gridX] == 2 || grid[gridY][gridX] == 3) {
             float tileCenterX = gridX * tileSize + tileSize / 2.0f;
             float tileCenterY = gridY * tileSize + tileSize / 2.0f;
@@ -155,10 +151,7 @@ void Enemy::move(int grid[M][N], float deltaTime, int tileSize) {
         float angle;
         do {
             angle = static_cast<float>(rand()) / RAND_MAX * 2 * 3.14159f;
-        } while (
-            abs(fmod(angle, 3.14159f / 2.0f)) < 0.2f ||
-            abs(fmod(angle, 3.14159f / 2.0f) - 3.14159f / 2.0f) < 0.2f
-            );
+        } while (abs(fmod(angle, 3.14159f / 2.0f)) < 0.2f || abs(fmod(angle, 3.14159f / 2.0f) - 3.14159f / 2.0f) < 0.2f);
         dx = cos(angle);
         dy = sin(angle);
 
@@ -217,9 +210,7 @@ bool saveGame(const SaveGameState& state) {
     filepath[i] = '.'; filepath[i + 1] = 's'; filepath[i + 2] = 'a'; filepath[i + 3] = 'v'; filepath[i + 4] = '\0';
 
     ofstream file(filepath);
-    if (!file.is_open()) {
-        return false;
-    }
+    if (!file.is_open()) return false;
 
     file << "username:" << state.username << "\n";
     file << "grid:";
@@ -281,9 +272,7 @@ bool loadGame(const string& username, SaveGameState& state) {
     filepath[i] = '.'; filepath[i + 1] = 's'; filepath[i + 2] = 'a'; filepath[i + 3] = 'v'; filepath[i + 4] = '\0';
 
     ifstream file(filepath);
-    if (!file.is_open()) {
-        return false;
-    }
+    if (!file.is_open()) return false;
 
     string line;
     while (getline(file, line)) {
@@ -359,9 +348,7 @@ bool loadGame(const string& username, SaveGameState& state) {
     }
 
     file.close();
-    if (state.enemyCount < 0 || state.enemyCount > 10 || state.levelIndex < 0 || state.levelIndex > 2) {
-        return false; // Invalid data
-    }
+    if (state.enemyCount < 0 || state.enemyCount > 10 || state.levelIndex < 0 || state.levelIndex > 2) return false;
     return true;
 }
 
@@ -415,13 +402,10 @@ int selectLevel(RenderWindow& window, Font& font, Inventory& inventory) {
                 window.close();
                 return -1;
             }
-
             if (event.type == Event::MouseButtonPressed) {
                 Vector2f mousePos = window.mapPixelToCoords(Mouse::getPosition(window));
                 for (int i = 0; i < 3; ++i) {
-                    if (levelButtons[i].getGlobalBounds().contains(mousePos.x, mousePos.y)) {
-                        return i;
-                    }
+                    if (levelButtons[i].getGlobalBounds().contains(mousePos.x, mousePos.y)) return i;
                 }
             }
         }
@@ -454,7 +438,7 @@ void playXonixGame(PlayerList& pl, RenderWindow& window, Font& font, const strin
     window.setSize(Vector2u(windowWidth, windowHeight));
     srand(time(0));
 
-    int grid[M][N] = { {0} }; // Initialize grid
+    int grid[M][N] = { {0} };
     int levelIndex = 0;
     int enemyCount = 2;
     float enemySpeed = 45.0f;
@@ -543,7 +527,6 @@ void playXonixGame(PlayerList& pl, RenderWindow& window, Font& font, const strin
 
         player.x = 10;
         player.y = 0;
-        // Initialize grid with borders
         for (int i = 0; i < M; i++)
             for (int j = 0; j < N; j++)
                 if (i == 0 || j == 0 || i == M - 1 || j == N - 1)
@@ -572,39 +555,25 @@ void playXonixGame(PlayerList& pl, RenderWindow& window, Font& font, const strin
 
     // Background selection UI
     Text backgroundOptions[10];
+    char bgNames[10][50];
     int bgCount = 0;
     string namesString = inventory.getBackgroundNames();
-    char bgNames[10][50];
-    int nameIndex = 0, bgIndex = 0;
+    int nameIndex = 0;
     while (nameIndex < namesString.length() && bgCount < 10) {
-        if (namesString[nameIndex] == '\0' || namesString[nameIndex] == ',') {
-            bgNames[bgCount][bgIndex] = '\0';
-            if (bgIndex > 0) {
-                backgroundOptions[bgCount].setFont(font);
-                backgroundOptions[bgCount].setString(bgNames[bgCount]);
-                backgroundOptions[bgCount].setCharacterSize(18);
-                backgroundOptions[bgCount].setPosition(20.0f + offsetX, 70.0f + offsetY + bgCount * 25.0f);
-                backgroundOptions[bgCount].setFillColor(bgCount + 1 == inventory.getCurrentBackgroundID() ? getColorForBackground(bgNames[bgCount]) : Color::White);
-                bgCount++;
-            }
-            bgIndex = 0;
-            nameIndex++;
+        int bgIndex = 0;
+        while (nameIndex < namesString.length() && namesString[nameIndex] != ',' && bgIndex < 49) {
+            bgNames[bgCount][bgIndex++] = namesString[nameIndex++];
         }
-        else {
-            if (bgIndex < 49) {
-                bgNames[bgCount][bgIndex++] = namesString[nameIndex];
-            }
-            nameIndex++;
-        }
-    }
-    if (bgIndex > 0 && bgCount < 10) {
         bgNames[bgCount][bgIndex] = '\0';
-        backgroundOptions[bgCount].setFont(font);
-        backgroundOptions[bgCount].setString(bgNames[bgCount]);
-        backgroundOptions[bgCount].setCharacterSize(18);
-        backgroundOptions[bgCount].setPosition(20.0f + offsetX, 70.0f + offsetY + bgCount * 25.0f);
-        backgroundOptions[bgCount].setFillColor(bgCount + 1 == inventory.getCurrentBackgroundID() ? getColorForBackground(bgNames[bgCount]) : Color::White);
-        bgCount++;
+        if (bgIndex > 0) {
+            backgroundOptions[bgCount].setFont(font);
+            backgroundOptions[bgCount].setString(bgNames[bgCount]);
+            backgroundOptions[bgCount].setCharacterSize(18);
+            backgroundOptions[bgCount].setPosition(20.0f + offsetX, 70.0f + offsetY + bgCount * 25.0f);
+            backgroundOptions[bgCount].setFillColor(bgCount + 1 == inventory.getCurrentBackgroundID() ? getColorForBackground(bgNames[bgCount]) : Color::White);
+            bgCount++;
+        }
+        if (nameIndex < namesString.length() && namesString[nameIndex] == ',') nameIndex++;
     }
 
     Enemy enemies[10];
@@ -630,9 +599,7 @@ void playXonixGame(PlayerList& pl, RenderWindow& window, Font& font, const strin
     Clock clock;
     Music& music = inventory.getCurrentSound();
     music.setLoop(true);
-    if (savedState) {
-        music.setPlayingOffset(seconds(savedState->musicOffset));
-    }
+    if (savedState) music.setPlayingOffset(seconds(savedState->musicOffset));
     music.play();
 
     while (window.isOpen()) {
@@ -644,12 +611,8 @@ void playXonixGame(PlayerList& pl, RenderWindow& window, Font& font, const strin
             if (e.type == Event::Closed) {
                 music.stop();
                 Player* p = pl.getPlayerByUsername(currentUser);
-                if (p) {
-                    pl.savePlayerStats(currentUser, player.score, player.powerUps, p->preferredThemeID, p->preferredSoundID);
-                }
-                else {
-                    cerr << "Error: Player " << currentUser << " not found for saving stats.\n";
-                }
+                if (p) pl.savePlayerStats(currentUser, player.score, player.powerUps, p->preferredThemeID, p->preferredSoundID);
+                else cerr << "Error: Player " << currentUser << " not found for saving stats.\n";
                 window.close();
                 return;
             }
@@ -663,16 +626,11 @@ void playXonixGame(PlayerList& pl, RenderWindow& window, Font& font, const strin
                     if (!Game) {
                         music.stop();
                         Player* p = pl.getPlayerByUsername(currentUser);
-                        if (p) {
-                            pl.savePlayerStats(currentUser, player.score, player.powerUps, p->preferredThemeID, p->preferredSoundID);
-                        }
-                        else {
-                            cerr << "Error: Player " << currentUser << " not found for saving stats.\n";
-                        }
+                        if (p) pl.savePlayerStats(currentUser, player.score, player.powerUps, p->preferredThemeID, p->preferredSoundID);
+                        else cerr << "Error: Player " << currentUser << " not found for saving stats.\n";
                         return;
                     }
                     else {
-                        // Reset grid
                         for (int i = 0; i < M; i++)
                             for (int j = 0; j < N; j++)
                                 if (i == 0 || j == 0 || i == M - 1 || j == N - 1)
@@ -695,13 +653,10 @@ void playXonixGame(PlayerList& pl, RenderWindow& window, Font& font, const strin
                     }
                 }
                 if (e.key.code == Keyboard::Space && player.powerUps > 0 && Game && !paused) {
-                    for (int i = 0; i < enemyCount; i++)
-                        enemies[i].activateFreeze();
+                    for (int i = 0; i < enemyCount; i++) enemies[i].activateFreeze();
                     player.powerUps--;
                 }
-                if (e.key.code == Keyboard::B && !paused) {
-                    player.showBackgroundMenu = !player.showBackgroundMenu;
-                }
+                if (e.key.code == Keyboard::B && !paused) player.showBackgroundMenu = !player.showBackgroundMenu;
                 if (e.key.code == Keyboard::S && Keyboard::isKeyPressed(Keyboard::LControl) && !paused && Game) {
                     SaveGameState state;
                     manualStringCopy(state.username, currentUser.c_str(), sizeof(state.username));
@@ -775,7 +730,6 @@ void playXonixGame(PlayerList& pl, RenderWindow& window, Font& font, const strin
             }
         }
 
-        // Handle pause menu actions
         if (paused && selectedOption != PAUSE_NONE) {
             if (selectedOption == PAUSE_RESUME) {
                 paused = false;
@@ -830,12 +784,8 @@ void playXonixGame(PlayerList& pl, RenderWindow& window, Font& font, const strin
             else if (selectedOption == PAUSE_EXIT) {
                 music.stop();
                 Player* p = pl.getPlayerByUsername(currentUser);
-                if (p) {
-                    pl.savePlayerStats(currentUser, player.score, player.powerUps, p->preferredThemeID, p->preferredSoundID);
-                }
-                else {
-                    cerr << "Error: Player " << currentUser << " not found for saving stats.\n";
-                }
+                if (p) pl.savePlayerStats(currentUser, player.score, player.powerUps, p->preferredThemeID, p->preferredSoundID);
+                else cerr << "Error: Player " << currentUser << " not found for saving stats.\n";
                 return;
             }
         }
@@ -912,41 +862,30 @@ void playXonixGame(PlayerList& pl, RenderWindow& window, Font& font, const strin
                 int enemyX = static_cast<int>(enemies[i].x / ts);
 
                 if (enemyY >= 0 && enemyY < M && enemyX >= 0 && enemyX < N) {
-                    // Check if the enemy hits the player
                     if (static_cast<int>(player.x) == enemyX && static_cast<int>(player.y) == enemyY && player.constructing) {
-                        // Player dies if constructing
                         Game = false;
                         break;
                     }
-
-                    // Check if the enemy hits the player's incomplete path
                     if (grid[enemyY][enemyX] == PATH) {
                         if (player.constructing) {
-                            // Player dies if constructing
                             Game = false;
                             break;
                         }
                         else {
-                            // Enemy rebounds if hitting a completed or incomplete path
                             enemies[i].dx = -enemies[i].dx;
                             enemies[i].dy = -enemies[i].dy;
                         }
                     }
                 }
             }
-
         }
 
-        if (player.frozen && player.frozenClock.getElapsedTime().asSeconds() >= 3) {
-            player.frozen = false;
-        }
-
+        if (player.frozen && player.frozenClock.getElapsedTime().asSeconds() >= 3) player.frozen = false;
         if (!paused) timer += time;
 
         window.clear();
         inventory.drawBackground(window);
 
-        // Draw grid
         for (int i = 0; i < M; i++)
             for (int j = 0; j < N; j++) {
                 if (grid[i][j] == EMPTY) continue;
@@ -974,9 +913,7 @@ void playXonixGame(PlayerList& pl, RenderWindow& window, Font& font, const strin
         window.draw(powerUpText);
 
         if (player.showBackgroundMenu) {
-            for (int i = 0; i < bgCount; i++) {
-                window.draw(backgroundOptions[i]);
-            }
+            for (int i = 0; i < bgCount; i++) window.draw(backgroundOptions[i]);
         }
 
         if (paused) {
@@ -1012,11 +949,10 @@ void playMultiplayerXonixGame(PlayerList& pl, RenderWindow& window, Font& font, 
     int grid[M][N] = { 0 };
     int tileOwner[M][N] = { 0 };
 
-    const int ts = 18; // Tile size
-    const float offsetX = (800 - N * ts) / 2.0f; // Center horizontally
-    const float offsetY = (600 - M * ts) / 2.0f; // Center vertically
+    const int ts = 18;
+    const float offsetX = (800 - N * ts) / 2.0f;
+    const float offsetY = (600 - M * ts) / 2.0f;
 
-    // Load textures
     Texture t1, t2, t3;
     if (!t1.loadFromFile("images/tiles.png") || !t2.loadFromFile("images/gameover.png") || !t3.loadFromFile("images/enemy.png")) {
         cout << "Error: Could not load game textures.\n";
@@ -1027,7 +963,6 @@ void playMultiplayerXonixGame(PlayerList& pl, RenderWindow& window, Font& font, 
     sGameover.setPosition(200.0f + offsetX, 150.0f + offsetY);
     sEnemy.setOrigin(20, 20);
 
-    // Player 1 UI
     Text scoreTextP1("", font, 20);
     scoreTextP1.setFillColor(Color::White);
     scoreTextP1.setPosition(20.0f + offsetX, 15.0f + offsetY);
@@ -1036,7 +971,6 @@ void playMultiplayerXonixGame(PlayerList& pl, RenderWindow& window, Font& font, 
     powerUpTextP1.setFillColor(Color(100, 255, 100));
     powerUpTextP1.setPosition(20.0f + offsetX, 40.0f + offsetY);
 
-    // Player 2 UI
     Text scoreTextP2("", font, 20);
     scoreTextP2.setFillColor(Color::White);
     scoreTextP2.setPosition(static_cast<float>(N * ts - 190) + offsetX, 15.0f + offsetY);
@@ -1045,7 +979,6 @@ void playMultiplayerXonixGame(PlayerList& pl, RenderWindow& window, Font& font, 
     powerUpTextP2.setFillColor(Color(100, 255, 100));
     powerUpTextP2.setPosition(static_cast<float>(N * ts - 190) + offsetX, 40.0f + offsetY);
 
-    // Winner announcement
     Text winnerText("", font, 30);
     winnerText.setFillColor(Color::Yellow);
     winnerText.setStyle(Text::Bold);
@@ -1054,32 +987,31 @@ void playMultiplayerXonixGame(PlayerList& pl, RenderWindow& window, Font& font, 
     winnerText.setOutlineThickness(1);
 
     // Background options menu
-    vector<Text> backgroundOptions;
+    Text backgroundOptions[10];
+    char bgNames[10][50];
+    int bgCount = 0;
     string namesString = inventory.getBackgroundNames();
-    vector<string> bgNames;
-    stringstream ss(namesString);
-    string name;
-    while (getline(ss, name)) {
-        if (!name.empty()) {
-            bgNames.push_back(name);
+    int nameIndex = 0;
+    while (nameIndex < namesString.length() && bgCount < 10) {
+        int bgIndex = 0;
+        while (nameIndex < namesString.length() && namesString[nameIndex] != ',' && bgIndex < 49) {
+            bgNames[bgCount][bgIndex++] = namesString[nameIndex++];
         }
-    }
-    for (size_t i = 0; i < bgNames.size(); ++i) {
-        Text option;
-        option.setFont(font);
-        option.setString(bgNames[i]);
-        option.setCharacterSize(18);
-        option.setPosition(20.0f + offsetX, 70.0f + offsetY + i * 25.0f);
-        option.setFillColor(i + 1 == inventory.getCurrentBackgroundID() ? getColorForBackground(bgNames[i]) : Color::White);
-        backgroundOptions.push_back(option);
+        bgNames[bgCount][bgIndex] = '\0';
+        if (bgIndex > 0) {
+            backgroundOptions[bgCount].setFont(font);
+            backgroundOptions[bgCount].setString(bgNames[bgCount]);
+            backgroundOptions[bgCount].setCharacterSize(18);
+            backgroundOptions[bgCount].setPosition(20.0f + offsetX, 70.0f + offsetY + bgCount * 25.0f);
+            backgroundOptions[bgCount].setFillColor(bgCount + 1 == inventory.getCurrentBackgroundID() ? getColorForBackground(bgNames[bgCount]) : Color::White);
+            bgCount++;
+        }
+        if (nameIndex < namesString.length() && namesString[nameIndex] == ',') nameIndex++;
     }
 
-    // Initialize enemies
-    int enemyCount = 3 + (rand() % 3); // 3 to 5 enemies
+    int enemyCount = 3 + (rand() % 3);
     Enemy enemies[10];
-    for (int i = 0; i < enemyCount; ++i) {
-        enemies[i] = Enemy(grid, ts);
-    }
+    for (int i = 0; i < enemyCount; ++i) enemies[i] = Enemy(grid, ts);
 
     bool Game = true;
     bool gameEnded = false;
@@ -1097,7 +1029,6 @@ void playMultiplayerXonixGame(PlayerList& pl, RenderWindow& window, Font& font, 
     int bonusCountP1 = 0, bonusThresholdP1 = 10, bonusMultiplierP1 = 2;
     int bonusCountP2 = 0, bonusThresholdP2 = 10, bonusMultiplierP2 = 2;
 
-    // Initialize grid borders
     for (int i = 0; i < M; i++)
         for (int j = 0; j < N; j++)
             if (i == 0 || j == 0 || i == M - 1 || j == N - 1) {
@@ -1119,13 +1050,9 @@ void playMultiplayerXonixGame(PlayerList& pl, RenderWindow& window, Font& font, 
             if (e.type == Event::Closed) {
                 music.stop();
                 Player* p1 = pl.getPlayerByUsername(player1User);
-                if (p1) {
-                    pl.savePlayerStats(player1User, player1.score, player1.powerUps, p1->preferredThemeID, p1->preferredSoundID);
-                }
+                if (p1) pl.savePlayerStats(player1User, player1.score, player1.powerUps, p1->preferredThemeID, p1->preferredSoundID);
                 Player* p2 = pl.getPlayerByUsername(player2User);
-                if (p2) {
-                    pl.savePlayerStats(player2User, player2.score, player2.powerUps, p2->preferredThemeID, p2->preferredSoundID);
-                }
+                if (p2) pl.savePlayerStats(player2User, player2.score, player2.powerUps, p2->preferredThemeID, p2->preferredSoundID);
                 if (!gameEnded && Game) {
                     pl.updatePlayerLosses(player1User, 1);
                     pl.updatePlayerLosses(player2User, 1);
@@ -1139,13 +1066,9 @@ void playMultiplayerXonixGame(PlayerList& pl, RenderWindow& window, Font& font, 
                     if (!Game || (!player1.alive && !player2.alive)) {
                         music.stop();
                         Player* p1 = pl.getPlayerByUsername(player1User);
-                        if (p1) {
-                            pl.savePlayerStats(player1User, player1.score, player1.powerUps, p1->preferredThemeID, p1->preferredSoundID);
-                        }
+                        if (p1) pl.savePlayerStats(player1User, player1.score, player1.powerUps, p1->preferredThemeID, p1->preferredSoundID);
                         Player* p2 = pl.getPlayerByUsername(player2User);
-                        if (p2) {
-                            pl.savePlayerStats(player2User, player2.score, player2.powerUps, p2->preferredThemeID, p2->preferredSoundID);
-                        }
+                        if (p2) pl.savePlayerStats(player2User, player2.score, player2.powerUps, p2->preferredThemeID, p2->preferredSoundID);
                         if (!gameEnded && Game) {
                             pl.updatePlayerLosses(player1User, 1);
                             pl.updatePlayerLosses(player2User, 1);
@@ -1175,22 +1098,19 @@ void playMultiplayerXonixGame(PlayerList& pl, RenderWindow& window, Font& font, 
                         bonusThresholdP1 = bonusThresholdP2 = 10;
                         bonusMultiplierP1 = bonusMultiplierP2 = 2;
                         enemyCount = 3 + (rand() % 3);
-                        for (int i = 0; i < enemyCount; i++)
-                            enemies[i] = Enemy(grid, ts);
+                        for (int i = 0; i < enemyCount; i++) enemies[i] = Enemy(grid, ts);
                         music.stop();
                         music.play();
                     }
                 }
                 if (e.key.code == Keyboard::Space && player1.powerUps > 0 && Game && player1.alive) {
-                    for (int i = 0; i < enemyCount; i++)
-                        enemies[i].activateFreeze();
+                    for (int i = 0; i < enemyCount; i++) enemies[i].activateFreeze();
                     player2.frozen = true;
                     player2.frozenClock.restart();
                     player1.powerUps--;
                 }
                 if (e.key.code == Keyboard::Return && player2.powerUps > 0 && Game && player2.alive) {
-                    for (int i = 0; i < enemyCount; i++)
-                        enemies[i].activateFreeze();
+                    for (int i = 0; i < enemyCount; i++) enemies[i].activateFreeze();
                     player1.frozen = true;
                     player1.frozenClock.restart();
                     player2.powerUps--;
@@ -1203,12 +1123,12 @@ void playMultiplayerXonixGame(PlayerList& pl, RenderWindow& window, Font& font, 
 
             if (e.type == Event::MouseButtonPressed && player1.showBackgroundMenu) {
                 Vector2f mousePos = window.mapPixelToCoords(Mouse::getPosition(window));
-                for (size_t i = 0; i < backgroundOptions.size(); ++i) {
+                for (int i = 0; i < bgCount; ++i) {
                     if (backgroundOptions[i].getGlobalBounds().contains(mousePos)) {
                         inventory.setBackground(i + 1);
                         player1.showBackgroundMenu = false;
                         player2.showBackgroundMenu = false;
-                        for (size_t j = 0; j < backgroundOptions.size(); ++j) {
+                        for (int j = 0; j < bgCount; ++j) {
                             backgroundOptions[j].setFillColor(j + 1 == inventory.getCurrentBackgroundID() ? getColorForBackground(bgNames[j]) : Color::White);
                         }
                         break;
@@ -1218,7 +1138,6 @@ void playMultiplayerXonixGame(PlayerList& pl, RenderWindow& window, Font& font, 
         }
 
         if (Game) {
-            // Player 1 movement
             if (!player1.frozen && player1.alive) {
                 if (Keyboard::isKeyPressed(Keyboard::A)) { player1.dx = -1; player1.dy = 0; }
                 if (Keyboard::isKeyPressed(Keyboard::D)) { player1.dx = 1; player1.dy = 0; }
@@ -1226,7 +1145,6 @@ void playMultiplayerXonixGame(PlayerList& pl, RenderWindow& window, Font& font, 
                 if (Keyboard::isKeyPressed(Keyboard::S)) { player1.dx = 0; player1.dy = 1; }
             }
 
-            // Player 2 movement
             if (!player2.frozen && player2.alive) {
                 if (Keyboard::isKeyPressed(Keyboard::Left)) { player2.dx = -1; player2.dy = 0; }
                 if (Keyboard::isKeyPressed(Keyboard::Right)) { player2.dx = 1; player2.dy = 0; }
@@ -1279,7 +1197,6 @@ void playMultiplayerXonixGame(PlayerList& pl, RenderWindow& window, Font& font, 
                     }
                 }
 
-                // Collision between players
                 if (player1.alive && player2.alive && static_cast<int>(player1.x) == static_cast<int>(player2.x) && static_cast<int>(player1.y) == static_cast<int>(player2.y)) {
                     if (player1.constructing && player2.constructing) {
                         player1.alive = false;
@@ -1300,7 +1217,6 @@ void playMultiplayerXonixGame(PlayerList& pl, RenderWindow& window, Font& font, 
                 timer = 0;
             }
 
-            // Enemy movement and collision
             for (int i = 0; i < enemyCount; i++) {
                 enemies[i].move(grid, time, ts);
 
@@ -1310,21 +1226,18 @@ void playMultiplayerXonixGame(PlayerList& pl, RenderWindow& window, Font& font, 
                 if (enemyY >= 0 && enemyY < M && enemyX >= 0 && enemyX < N) {
                     int enemyGridVal = grid[enemyY][enemyX];
 
-                    // Player 1 collision with enemy
                     if (player1.alive && player1.constructing) {
                         if ((static_cast<int>(player1.x) == enemyX && static_cast<int>(player1.y) == enemyY) || enemyGridVal == 2) {
                             player1.alive = false;
                         }
                     }
 
-                    // Player 2 collision with enemy
                     if (player2.alive && player2.constructing) {
                         if ((static_cast<int>(player2.x) == enemyX && static_cast<int>(player2.y) == enemyY) || enemyGridVal == 3) {
                             player2.alive = false;
                         }
                     }
 
-                    // Enemy bounce logic
                     if (enemyGridVal == 1 || enemyGridVal == 2 || enemyGridVal == 3) {
                         enemies[i].dx = -enemies[i].dx;
                         enemies[i].dy = -enemies[i].dy;
@@ -1332,7 +1245,6 @@ void playMultiplayerXonixGame(PlayerList& pl, RenderWindow& window, Font& font, 
                 }
             }
 
-            // Player 1 captures territory
             if (player1.alive && grid[static_cast<int>(player1.y)][static_cast<int>(player1.x)] == 1) {
                 player1.dx = player1.dy = 0;
                 for (int i = 0; i < enemyCount; i++) {
@@ -1377,7 +1289,6 @@ void playMultiplayerXonixGame(PlayerList& pl, RenderWindow& window, Font& font, 
                 }
             }
 
-            // Player 2 captures territory
             if (player2.alive && grid[static_cast<int>(player2.y)][static_cast<int>(player2.x)] == 1) {
                 player2.dx = player2.dy = 0;
                 for (int i = 0; i < enemyCount; i++) {
@@ -1423,15 +1334,9 @@ void playMultiplayerXonixGame(PlayerList& pl, RenderWindow& window, Font& font, 
             }
         }
 
-        // Unfreeze players
-        if (player1.frozen && player1.frozenClock.getElapsedTime().asSeconds() >= 3) {
-            player1.frozen = false;
-        }
-        if (player2.frozen && player2.frozenClock.getElapsedTime().asSeconds() >= 3) {
-            player2.frozen = false;
-        }
+        if (player1.frozen && player1.frozenClock.getElapsedTime().asSeconds() >= 3) player1.frozen = false;
+        if (player2.frozen && player2.frozenClock.getElapsedTime().asSeconds() >= 3) player2.frozen = false;
 
-        // Determine game outcome
         if (!player1.alive && !player2.alive && !gameEnded) {
             Game = false;
             gameEnded = true;
@@ -1454,7 +1359,6 @@ void playMultiplayerXonixGame(PlayerList& pl, RenderWindow& window, Font& font, 
             winnerText.setString(winner);
         }
 
-        // Rendering
         window.clear();
         inventory.drawBackground(window);
 
@@ -1514,9 +1418,7 @@ void playMultiplayerXonixGame(PlayerList& pl, RenderWindow& window, Font& font, 
         window.draw(powerUpTextP2);
 
         if (player1.showBackgroundMenu) {
-            for (const auto& option : backgroundOptions) {
-                window.draw(option);
-            }
+            for (int i = 0; i < bgCount; i++) window.draw(backgroundOptions[i]);
         }
 
         if (!Game) {
