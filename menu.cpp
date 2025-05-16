@@ -513,7 +513,6 @@ bool displayInventoryPage(PlayerList& pl, sf::RenderWindow& window, sf::Font& fo
 }
 
 void displayMenu(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, string& currentUser, Inventory& inventory) {
-    // Create and initialize a static MatchmakingQueue instead of using vector
     static MatchmakingQueue queue;
 
     window.setTitle("Main Menu");
@@ -525,7 +524,6 @@ void displayMenu(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, strin
     title.setOutlineColor(sf::Color::Black);
     title.setOutlineThickness(1);
 
-    // Left column text labels - using static arrays instead of vectors
     sf::Text leftLabels[5];
     const char* leftLabelStrings[5] = { "Single Player", "Resume Game", "Multiplayer", "Manual", "Queue" };
     for (int i = 0; i < 5; ++i) {
@@ -538,7 +536,6 @@ void displayMenu(PlayerList& pl, sf::RenderWindow& window, sf::Font& font, strin
         leftLabels[i].setOutlineThickness(1);
     }
 
-    // Right column text labels - using static arrays instead of vectors
     sf::Text rightLabels[5];
     const char* rightLabelStrings[5] = { "Inventory", "Friends", "Profile", "Leaderboard", "Log Out" };
     for (int i = 0; i < 5; ++i) {

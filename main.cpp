@@ -10,7 +10,7 @@ using namespace sf;
 int main() {
     // Initialize SFML window
     RenderWindow window(VideoMode(800, 600), "Xonix");
-    window.setFramerateLimit(60); // Smooth rendering, consistent with game.cpp
+    window.setFramerateLimit(60); 
 
     // Load font
     Font font;

@@ -2,11 +2,10 @@
 #define GAME_H
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
-
+#include<iostream>
 
 #define M 30
 #define N 40
-#include<iostream>
 
 using namespace std;
 
