@@ -4,6 +4,7 @@ A feature-rich, 2D multiplayer game developed as part of a Data Structures & Alg
 
 
 ****🚀 Features****
+
 🔐 Login & Signup System — File-based secure authentication
 
 🧭 Interactive Menus — Main menu, inventory, matchmaking, and more with smooth UI
@@ -24,7 +25,8 @@ A feature-rich, 2D multiplayer game developed as part of a Data Structures & Alg
 
 
 
-**🛠️ Technologies Used**
+****🛠️ Technologies Used****
+
 Language: C++
 
 Graphics: SFML
@@ -45,7 +47,10 @@ Hash Table — Fast user lookup
 
 Dynamic Arrays — Player and profile storage
 
-**📂 Project Structure**
+
+
+****📂 Project Structure****
+
 menu.cpp — Menu and UI navigation
 
 player.cpp — Player profiles, leaderboard, authentication
@@ -58,12 +63,18 @@ save.cpp — Game save/load system
 
 game.cpp — Core gameplay logic and rendering
 
-**👥 Team Members**
+
+
+****👥 Team Members****
+
 Shazad Ahmad — Inventory, Multiplayer, Save/Load, Matchmaking
 
 Muhammad Haris — Menus, Leaderboard, Authentication, Profiles
 
-**📆 Development Timeline**
+
+
+****📆 Development Timeline****
+
 UI/UX & Menus
 
 Core Game Mechanics (Single/Multiplayer)
@@ -74,7 +85,10 @@ Leaderboard & Matchmaking
 
 Inventory, Save/Load, and Final Integration
 
-**⚔️ Challenges Solved**
+
+
+****⚔️ Challenges Solved****
+
 Slow Matchmaking I/O → Optimized file writes
 
 Leaderboard Inefficiency → Switched to a Min Heap
@@ -83,10 +97,16 @@ Unbalanced Matches → Implemented score-based priority queue
 
 UI Lag → Reduced redraws using boolean flags
 
-**📸 Screenshots**
+
+
+****📸 Screenshots****
+
 (Add images of login screen, gameplay, leaderboard, inventory, etc. here once hosted or uploaded)
 
-**🧠 Learnings**
+
+
+****🧠 Learnings****
+
 This project enhanced our understanding of:
 
 Real-world applications of DSA
@@ -97,5 +117,8 @@ UI design in SFML
 
 Optimizing performance using the right data structures
 
-**📜 License**
+
+
+****📜 License****
+
 This project is developed for academic purposes. Feel free to fork and expand!
