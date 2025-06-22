@@ -1,9 +1,9 @@
-******🎮 Xonix Game (DSA Project in C++)******
+# 🎮 Xonix Game (DSA Project in C++)
 
 A feature-rich, 2D multiplayer game developed as part of a Data Structures & Algorithms course project. Built using C++ and SFML (Simple and Fast Multimedia Library), this modern take on the classic Xonix game showcases the practical implementation of key data structures and algorithms to deliver a responsive and interactive gaming experience.
 
 
-******🚀 Features******
+## 🚀 Features
 
 🔐 Login & Signup System — File-based secure authentication
 
@@ -25,7 +25,7 @@ A feature-rich, 2D multiplayer game developed as part of a Data Structures & Alg
 
 
 
-******🛠️ Technologies Used******
+## 🛠️ Technologies Used
 
 Language: C++
 
@@ -49,7 +49,7 @@ Dynamic Arrays — Player and profile storage
 
 
 
-******📂 Project Structure******
+## 📂 Project Structure
 
 menu.cpp — Menu and UI navigation
 
@@ -65,7 +65,7 @@ game.cpp — Core gameplay logic and rendering
 
 
 
-******👥 Team Members******
+## 👥 Team Members
 
 Shazad Ahmad — Inventory, Multiplayer, Save/Load, Matchmaking
 
@@ -73,7 +73,7 @@ Muhammad Haris — Menus, Leaderboard, Authentication, Profiles
 
 
 
-******📆 Development Timeline******
+## 📆 Development Timeline
 
 UI/UX & Menus
 
@@ -87,7 +87,7 @@ Inventory, Save/Load, and Final Integration
 
 
 
-******⚔️ Challenges Solved******
+## ⚔️ Challenges Solved
 
 Slow Matchmaking I/O → Optimized file writes
 
@@ -103,7 +103,7 @@ UI Lag → Reduced redraws using boolean flags
 
 
 
-******🧠 Learnings******
+## 🧠 Learnings
 
 This project enhanced our understanding of:
 
@@ -117,6 +117,6 @@ Optimizing performance using the right data structures
 
 
 
-******📜 License******
+## 📜 License
 
 This project is developed for academic purposes. Feel free to fork and expand!
